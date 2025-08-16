@@ -9,7 +9,7 @@ from sklearn.metrics import accuracy_score
 # 📁 Define dataset path using os
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATASET_DIR = os.path.join(BASE_DIR, "datasets")
-DATA_PATH = os.path.join(DATASET_DIR, "heart_disease_data.csv")  # ✅ Correct filename here
+DATA_PATH = os.path.join(DATASET_DIR, "heart_disease_data1.csv")  # ✅ Correct filename here
 
 # 🗂️ Load and clean the dataset
 if not os.path.exists(DATA_PATH):

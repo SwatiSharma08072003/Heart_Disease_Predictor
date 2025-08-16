@@ -14,7 +14,7 @@ with st.sidebar:
     st.markdown("### 📋 Expected Features")
     st.markdown("""
     - **Age**: Age in years  
-    - **Sex**: 0 = Female, 1 = Male  
+    - **Gender**: 0 = Female, 1 = Male  
     - **CP**: Chest pain type (0–3)  
     - **Trestbps**: Resting blood pressure  
     - **Chol**: Serum cholesterol  
@@ -37,64 +37,50 @@ with st.sidebar:
     st.markdown("💡 Tip: Use realistic values for better predictions.")
     st.markdown("🧠 Powered by Scikit-learn")
 
-# 💡 Main UI with Tabs
+# 💡 Main UI
 st.title("💓 Heart Disease Prediction System")
-tabs = st.tabs(["🧾 Prediction Form", "📂 Sample Data"])
+st.caption(f"Note: Enter values for the following {x.shape[1]} features.")
+st.subheader("🧾 Enter Patient Details:")
 
-# 🔹 Tab 1: Prediction Form
-with tabs[0]:
-    st.caption(f"Note: Enter values for the following {x.shape[1]} features.")
-    st.subheader("🧾 Enter Patient Details:")
+user_input = {}
+user_input["age"] = st.number_input("Age", min_value=1, max_value=120, value=50)
+user_input["sex"] = st.selectbox("Sex", options=[0, 1], format_func=lambda x: "Female" if x == 0 else "Male")
+user_input["cp"] = st.selectbox("Chest Pain Type (CP)", options=[0, 1, 2, 3])
+user_input["trestbps"] = st.number_input("Resting Blood Pressure (Trestbps)", min_value=80, max_value=200, value=120)
+user_input["chol"] = st.number_input("Serum Cholesterol (Chol)", min_value=100, max_value=600, value=240)
+user_input["fbs"] = st.selectbox("Fasting Blood Sugar > 120 mg/dl (FBS)", options=[0, 1])
+user_input["restecg"] = st.selectbox("Resting ECG Results (Restecg)", options=[0, 1, 2])
+user_input["thalach"] = st.number_input("Max Heart Rate Achieved (Thalach)", min_value=60, max_value=220, value=150)
+user_input["exang"] = st.selectbox("Exercise-Induced Angina (Exang)", options=[0, 1])
+user_input["oldpeak"] = st.number_input("ST Depression (Oldpeak)", min_value=0.0, max_value=6.0, value=1.0, step=0.1)
+user_input["slope"] = st.selectbox("Slope of Peak Exercise ST Segment (Slope)", options=[0, 1, 2])
+user_input["ca"] = st.selectbox("Number of Major Vessels (CA)", options=[0, 1, 2, 3])
+user_input["thal"] = st.selectbox("Thalassemia (Thal)", options=[1, 2, 3])
 
-    user_input = {}
-    user_input["age"] = st.number_input("Age", min_value=1, max_value=120, value=50)
-    user_input["sex"] = st.selectbox("Sex", options=[0, 1], format_func=lambda x: "Female" if x == 0 else "Male")
-    user_input["cp"] = st.selectbox("Chest Pain Type (CP)", options=[0, 1, 2, 3])
-    user_input["trestbps"] = st.number_input("Resting Blood Pressure (Trestbps)", min_value=80, max_value=200, value=120)
-    user_input["chol"] = st.number_input("Serum Cholesterol (Chol)", min_value=100, max_value=600, value=240)
-    user_input["fbs"] = st.selectbox("Fasting Blood Sugar > 120 mg/dl (FBS)", options=[0, 1])
-    user_input["restecg"] = st.selectbox("Resting ECG Results (Restecg)", options=[0, 1, 2])
-    user_input["thalach"] = st.number_input("Max Heart Rate Achieved (Thalach)", min_value=60, max_value=220, value=150)
-    user_input["exang"] = st.selectbox("Exercise-Induced Angina (Exang)", options=[0, 1])
-    user_input["oldpeak"] = st.number_input("ST Depression (Oldpeak)", min_value=0.0, max_value=6.0, value=1.0, step=0.1)
-    user_input["slope"] = st.selectbox("Slope of Peak Exercise ST Segment (Slope)", options=[0, 1, 2])
-    user_input["ca"] = st.selectbox("Number of Major Vessels (CA)", options=[0, 1, 2, 3])
-    user_input["thal"] = st.selectbox("Thalassemia (Thal)", options=[1, 2, 3])
+input_df = pd.DataFrame([user_input])
+input_df.columns = x.columns
+input_scaled_df = pd.DataFrame(scaler.transform(input_df), columns=x.columns)
 
-    input_df = pd.DataFrame([user_input])
-    input_df.columns = x.columns
-    input_scaled_df = pd.DataFrame(scaler.transform(input_df), columns=x.columns)
+if st.button("Predict"):
+    prediction = model_scaled.predict(input_scaled_df)
+    probability = model_scaled.predict_proba(input_scaled_df)[0][1]
 
-    if st.button("Predict"):
-        prediction = model_scaled.predict(input_scaled_df)
-        probability = model_scaled.predict_proba(input_scaled_df)[0][1]
+    st.markdown("---")
+    st.subheader("🧠 Prediction Result")
+    if prediction[0] == 1:
+        st.error("⚠️ You may be at risk of heart disease. Please consult a healthcare professional.")
+    else:
+        st.success("✅ Your report appears normal. Keep up the healthy lifestyle!")
 
-        st.markdown("---")
-        st.subheader("🧠 Prediction Result")
-        if prediction[0] == 1:
-            st.error("⚠️ You may be at risk of heart disease. Please consult a healthcare professional.")
-        else:
-            st.success("✅ Your report appears normal. Keep up the healthy lifestyle!")
+    st.write(f"📊 Probability of Heart Disease: **{probability:.2f}**")
+    st.progress(int(probability * 100))
 
-        st.write(f"📊 Probability of Heart Disease: **{probability:.2f}**")
-        st.progress(int(probability * 100))
-
-        if probability > 0.75:
-            st.warning("🔎 High confidence in prediction.")
-        elif probability > 0.5:
-            st.info("🔎 Moderate confidence in prediction.")
-        else:
-            st.info("🔎 Low confidence in prediction.")
-
-# 🔹 Tab 2: Sample Data
-with tabs[1]:
-    st.subheader("📂 Sample Heart Disease Data")
-    st.dataframe(disease_data.sample(20), use_container_width=True)
-    st.caption("Showing random 20 rows of the dataset for reference.")
-
-    # Optional: Download button
-    csv = disease_data.to_csv(index=False).encode('utf-8')
-    st.download_button("📥 Download Sample Data", data=csv, file_name="heart_disease_sample.csv", mime="text/csv")
+    if probability > 0.75:
+        st.warning("🔎 High confidence in prediction.")
+    elif probability > 0.5:
+        st.info("🔎 Moderate confidence in prediction.")
+    else:
+        st.info("🔎 Low confidence in prediction.")
 
 # 🙏 Friendly sign-off
 st.markdown("---")
